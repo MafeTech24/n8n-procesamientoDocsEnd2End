@@ -1,0 +1,761 @@
+{
+  "name": "Automatización Inteligente de Procesamiento de Documentos",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "/document-intake",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -368,
+        144
+      ],
+      "id": "b9cae571-b9e7-4939-b32e-38362231c662",
+      "name": "Recepción de Documentos",
+      "webhookId": "6cb5f0f9-41dd-46fb-8cdf-5b4d779ec703"
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = $input.first().json;\n\nreturn {\n  fileName: payload.fileName || payload.name || \"desconocido\",\n  fileData: payload.fileData || payload.file,\n  mimeType: payload.mimeType || \"application/pdf\",\n  source: payload.source || \"webhook\",\n  timestamp: new Date().toISOString()\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        144
+      ],
+      "id": "d2aa9ad2-8fbf-433e-972a-9d3f1e137261",
+      "name": "Normalizar Entrada de Documento"
+    },
+    {
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\nconst payload = $input.first().json;\n\nconst fileData = payload.fileData || \"\";\n\nconst hash = crypto\n  .createHash('md5')\n  .update(fileData)\n  .digest('hex');\n\nreturn {\n  ...payload,\n  documentHash: hash,\n  hashCalculatedAt: new Date().toISOString()\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        144
+      ],
+      "id": "de5b0cb1-1c8f-42b2-8729-23e806ee5f2b",
+      "name": "Calcular Hash"
+    },
+    {
+      "parameters": {
+        "tableId": "documents",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "=document_hash",
+              "fieldValue": "={{ $json.documentHash }}"
+            },
+            {
+              "fieldId": "file_name",
+              "fieldValue": "={{ $json.fileName }}"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "processed"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        256,
+        144
+      ],
+      "id": "e7c96a53-1c55-45f7-8565-0f90a633f052",
+      "name": "Guardar en Supabase",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "jsCode": "// Simula lo que haría Google Vision\nconst payload = $input.first().json;\n\nconst ocrText = `FACTURA\nNúmero: INV-2024-001\nFecha: 2024-02-11\nProveedor: ABC Company\nTotal: $5000\nItems:\n- Servicio A: $3000\n- Servicio B: $2000`;\n\nreturn {\n  ...payload,\n  ocrText: ocrText,\n  extractedData: {\n    invoice_number: \"INV-2024-001\",\n    date: \"2024-02-11\",\n    provider: \"ABC Company\",\n    total: 5000,\n    currency: \"ARS\",\n    items: [\n      { description: \"Servicio A\", amount: 3000 },\n      { description: \"Servicio B\", amount: 2000 }\n    ],\n    category: \"SERVICES\"\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        144
+      ],
+      "id": "02298951-88de-4210-95b1-fe060e2696e8",
+      "name": "Extraer Datos OCR"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1M0W8c9yjDPdimq3bhDt5CDSrpLr_g9TJfQA5whthyv4",
+          "mode": "list",
+          "cachedResultName": "Processing Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1M0W8c9yjDPdimq3bhDt5CDSrpLr_g9TJfQA5whthyv4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1M0W8c9yjDPdimq3bhDt5CDSrpLr_g9TJfQA5whthyv4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "document_hash",
+              "displayName": "document_hash",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "file_name",
+              "displayName": "file_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "extracted_data",
+              "displayName": "extracted_data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "confidence_score",
+              "displayName": "confidence_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ocrText",
+              "displayName": "ocrText",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "extractedData",
+              "displayName": "extractedData",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        672,
+        144
+      ],
+      "id": "118a83c2-d67c-461c-94bc-5608d837c4d1",
+      "name": "Registro de Procesamiento",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "content": "Normaliza datos de diferentes orígenes.\nAsegura formato estándar para procesar.",
+        "height": 96,
+        "width": 192
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -208,
+        304
+      ],
+      "typeVersion": 1,
+      "id": "f6c6d33b-5061-4d78-8222-853e2db8db74",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "Calcula MD5 del documento.\nSe usa para detectar duplicados.\nEvita procesar mismo doc 2 veces.",
+        "height": 128,
+        "width": 192
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "233164fb-c2df-4e16-8f6d-11467065977e",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "Inserta documento en tabla \"documents\".\nGuarda: hash, fileName, status\nTimestamp automático.",
+        "height": 128,
+        "width": 182
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        208,
+        288
+      ],
+      "typeVersion": 1,
+      "id": "3930209d-b39c-44be-9870-bd53015d859c",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "Simula Google Vision OCR.\nExtrae: invoice_number, date, total, items\nEn producción: integrar con Vision API real.",
+        "height": 128,
+        "width": 192
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        416,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "1c5c13f2-8b2b-4096-96eb-e6bba391f9f3",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "Agrega fila a Google Sheet \"Processing Log\".\nLoguea: Timestamp, Filename, Invoice, Total, Status\nDashboard en tiempo real.",
+        "height": 128,
+        "width": 224
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        624,
+        320
+      ],
+      "typeVersion": 1,
+      "id": "4a15951d-4d06-420b-a1d2-a368f25c77d1",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "Recibe documentos desde webhook.\nPOST /document-intake\nAcepta: fileName, fileData, mimeType",
+        "height": 112,
+        "width": 208
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -448,
+        16
+      ],
+      "typeVersion": 1,
+      "id": "face6c0d-a64f-4c09-81af-0fb7270b753d",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "Role: System\nContent:\nEres un experto procesador de documentos. Extrae datos del texto OCR y devuelve SOLO JSON válido. Sin explicaciones. Para números, sin símbolos de moneda. Para fechas, formato YYYY-MM-DD. Si no encuentras un campo, usa null.",
+              "role": "model"
+            },
+            {
+              "content": "Extrae de este texto y devuelve SOLO este JSON:\n{\n  \"invoice_number\": \"\",\n  \"date\": \"\",\n  \"provider\": \"\",\n  \"total\": 0,\n  \"currency\": \"\",\n  \"items\": [{\"description\": \"\", \"amount\": 0}],\n  \"category\": \"\"\n}\n\nTexto OCR:\nFACTURA\nNúmero: INV-2024-001\nFecha: 2024-02-11\nProveedor: ABC Company\nTotal: $5000\nItems:\n- Servicio A: $3000\n- Servicio B: $2000"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        880,
+        144
+      ],
+      "id": "cb5189ba-ce12-49f0-9c24-d33a9a6b369b",
+      "name": "Message a model",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "content": "Extrae datos del documento usando Gemini 2.5 Flash AI.\n\nProcesa el texto OCR y estructura los datos en JSON:\n- Número de factura\n- Fecha\n- Proveedor\n- Total y moneda\n- Ítems desglosados\n- Categoría\n\nSistema + User prompt en español.\nDevuelve JSON estructurado listo para procesar.",
+        "height": 336,
+        "width": 288
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        848,
+        -240
+      ],
+      "typeVersion": 1,
+      "id": "443f1dcf-0218-47ef-9790-1172891e5a86",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "jsCode": "const geminiOutput = $input.first().json;\nconst extracted = geminiOutput.contenido?.partes?.[0]?.texto;\n\nlet confidence = 0.95;\n\nif (!extracted || extracted.includes(\"null\")) confidence -= 0.1;\n\nreturn {\n  extractedData: geminiOutput,\n  confidenceScore: confidence,\n  requiresReview: confidence < 0.8\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1232,
+        144
+      ],
+      "id": "cb8ad755-33ff-4686-a572-2060feb4e669",
+      "name": "Puntuación de confianza"
+    },
+    {
+      "parameters": {
+        "content": "Calcula el confidence score de los datos extraídos.\n\nLógica:\n- Base: 0.95 (Gemini es muy confiable)\n- Penalidad: -0.1 si faltan campos\n\nGenera:\n✓ extractedData (datos del Gemini)\n✓ confidenceScore (0.0 - 1.0)\n✓ requiresReview (boolean)\n\nMarca para revisión manual si confidence < 0.8",
+        "height": 320,
+        "width": 288
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1136,
+        288
+      ],
+      "typeVersion": 1,
+      "id": "246569c7-dd70-4d9c-b46f-b66f1607943c",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "jsCode": "const extracted = $input.first().json.extractedData;\nconst timestamp = new Date().toLocaleString();\n\nconst linkedInPost = `🚀 Acabo de procesar un documento automáticamente con mi Document Processing Pipeline.\n\n📄 Documento procesado:\n- Número de factura: ${extracted.numero_factura || 'N/A'}\n- Fecha: ${extracted.fecha || 'N/A'}\n- Proveedor: ${extracted.proveedor || 'N/A'}\n- Total: ${extracted.total || 'N/A'} ${extracted.divisa || 'ARS'}\n\n✨ Cómo funciona:\n1️⃣ Recibe documentos por Webhook\n2️⃣ Gemini AI extrae datos automáticamente\n3️⃣ Valida con confidence scoring\n4️⃣ Guarda en Supabase\n5️⃣ Loguea en Google Sheets\n6️⃣ Dashboard en tiempo real\n\n🛠️ Tech Stack:\n- n8n (workflow automation)\n- Gemini 2.5 Flash (IA)\n- Supabase (base de datos)\n- Google Sheets (dashboard)\n- JavaScript (lógica)\n\n⏱️ Procesado: ${timestamp}\n🎯 Confianza: ${($input.first().json.confidenceScore * 100).toFixed(0)}%\n\nEste es el futuro de la automatización RPA.\n\n#Automation #n8n #AI #Gemini #Developer #RPA #Workflow`;\n\nreturn {\n  Linkedin: linkedInPost,  // Cambié a \"Linkedin\" con mayúscula\n  \"Marca de Tiempo\": timestamp  // Entre comillas por el espacio\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1728,
+        144
+      ],
+      "id": "9ec949dd-eaed-468c-acaa-d67857e665f3",
+      "name": "Formatear Post LinkedIn"
+    },
+    {
+      "parameters": {
+        "content": "Genera un post formateado para LinkedIn con los datos extraídos del documento, incluyendo información sobre el número de factura, proveedor, total, confianza del procesamiento y tech stack utilizado. Prepara el mensaje para publicación automática o manual.",
+        "width": 288
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1648,
+        304
+      ],
+      "typeVersion": 1,
+      "id": "768348ad-60a6-41ff-b645-85be2a9d9ed6",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1QDqJwmu57iAOOoxB9lsswCeqWUfHGysNJB0ajIjmb30",
+          "mode": "list",
+          "cachedResultName": "Post Linkedin",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1QDqJwmu57iAOOoxB9lsswCeqWUfHGysNJB0ajIjmb30/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1QDqJwmu57iAOOoxB9lsswCeqWUfHGysNJB0ajIjmb30/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {
+            "Linkedin": "={{ $json.linkedInPost }}",
+            "Marca de Tiempo": "={{ $json.timestamp }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Linkedin",
+              "displayName": "Linkedin",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Marca de Tiempo",
+              "displayName": "Marca de Tiempo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2032,
+        144
+      ],
+      "id": "b45fbb88-e917-4d59-aec9-b515af94ba5b",
+      "name": "LinkedIn Post Generator",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "content": "Genera automáticamente un post de LinkedIn con los datos procesados.\n\nIncluye:\n- Resumen del documento procesado\n- Números extraídos (factura, fecha, monto)\n- Explicación del workflow\n- Tech stack usado\n- Timestamp y confidence score\n\nPost listo para copiar-pegar en LinkedIn.\nNo requiere API keys ni credenciales.",
+        "height": 352,
+        "width": 272
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1888,
+        -224
+      ],
+      "typeVersion": 1,
+      "id": "544b8829-af28-4860-94f8-653aa9797023",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1M0W8c9yjDPdimq3bhDt5CDSrpLr_g9TJfQA5whthyv4",
+          "mode": "list",
+          "cachedResultName": "Processing Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1M0W8c9yjDPdimq3bhDt5CDSrpLr_g9TJfQA5whthyv4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1M0W8c9yjDPdimq3bhDt5CDSrpLr_g9TJfQA5whthyv4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "extractedData": "={{ $json.extractedData }}",
+            "confidence_score": "={{ $json.confidenceScore }}",
+            "id": "={{ $('Registro de Procesamiento').item.json.id }}",
+            "document_hash": "={{ $('Registro de Procesamiento').item.json.document_hash }}",
+            "file_name": "={{ $('Registro de Procesamiento').item.json.file_name }}",
+            "extracted_data": "={{ $('Registro de Procesamiento').item.json.extracted_data }}",
+            "status": "={{ $('Registro de Procesamiento').item.json.status }}",
+            "created_at": "={{ $('Registro de Procesamiento').item.json.created_at }}",
+            "ocrText": "={{ $('Registro de Procesamiento').item.json.ocrText }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "document_hash",
+              "displayName": "document_hash",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "file_name",
+              "displayName": "file_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "extracted_data",
+              "displayName": "extracted_data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "confidence_score",
+              "displayName": "confidence_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ocrText",
+              "displayName": "ocrText",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "extractedData",
+              "displayName": "extractedData",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1472,
+        144
+      ],
+      "id": "7190ddb5-d30c-46bc-bd34-6a3b5d6a7620",
+      "name": "Puntuación de confianza1",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "content": "Calcula el puntaje de confianza del procesamiento basado en:\n- Completitud de datos extraídos (campos requeridos vs vacíos)\n- Confidence score del Gemini AI\n- Genera lista de campos faltantes para auditoría\n- Determina si el documento necesita revisión manual (threshold: 0.8)\n\nOutput: confidenceScore (0.0 - 1.0) y missingFields array\n",
+        "height": 272,
+        "width": 288
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1376,
+        -144
+      ],
+      "typeVersion": 1,
+      "id": "4ac44fa3-7606-4af3-952b-eb389e84bfa5",
+      "name": "Sticky Note10"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Recepción de Documentos": {
+      "main": [
+        [
+          {
+            "node": "Normalizar Entrada de Documento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar Entrada de Documento": {
+      "main": [
+        [
+          {
+            "node": "Calcular Hash",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calcular Hash": {
+      "main": [
+        [
+          {
+            "node": "Guardar en Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar en Supabase": {
+      "main": [
+        [
+          {
+            "node": "Extraer Datos OCR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraer Datos OCR": {
+      "main": [
+        [
+          {
+            "node": "Registro de Procesamiento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registro de Procesamiento": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Puntuación de confianza",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Puntuación de confianza": {
+      "main": [
+        [
+          {
+            "node": "Puntuación de confianza1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatear Post LinkedIn": {
+      "main": [
+        [
+          {
+            "node": "LinkedIn Post Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Puntuación de confianza1": {
+      "main": [
+        [
+          {
+            "node": "Formatear Post LinkedIn",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "778f04e7-8a7e-4635-872b-24ca7e4bce57",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7823c4b84d53c9034f9071d4861a7506d489e15a77e7c99f2c5f94c551586acb"
+  },
+  "id": "igIvF7LjQlykHR0L_lW9K",
+  "tags": []
+}

@@ -1,0 +1,117 @@
+# ===========================================
+# Document Processing Pipeline - .gitignore
+# ===========================================
+
+# ===== Credenciales y Secrets =====
+.env
+.env.local
+.env.production
+.env.development
+*.key
+*.pem
+credentials.json
+service-account.json
+secrets/
+config/credentials/
+
+# ===== n8n específico =====
+.n8n/
+n8n-data/
+database.sqlite
+*.db
+*.sqlite3
+
+# Exports con credenciales (exporta sin credenciales)
+workflow-with-credentials.json
+*-credentials.json
+
+# ===== Node.js =====
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ===== Logs =====
+logs/
+*.log
+log.txt
+error.log
+access.log
+combined.log
+
+# ===== Archivos temporales =====
+tmp/
+temp/
+*.tmp
+*.temp
+.cache/
+uploads/
+downloads/
+
+# ===== Sistema operativo =====
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+
+# ===== IDEs y Editores =====
+# VSCode
+.vscode/
+*.code-workspace
+
+# JetBrains
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ===== Supabase =====
+supabase/.branches/
+supabase/.temp/
+supabase/config.toml
+
+# ===== Google Sheets / Drive =====
+token.json
+credentials-sheets.json
+google-credentials/
+
+# ===== Documentos de prueba =====
+# Descomentar si no quieres subir PDFs/imágenes de prueba
+# test-documents/
+# *.pdf
+# *.jpg
+# *.png
+# sample-invoices/
+
+# ===== Archivos de backup =====
+*.bak
+*.backup
+*.old
+*~
+
+# ===== Docker (por si usas contenedores) =====
+docker-compose.override.yml
+
+# ===== Otros =====
+.env.example.local
+coverage/
+.nyc_output/
