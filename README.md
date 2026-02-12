@@ -1,4 +1,4 @@
-# 🤖 Document Processing Pipeline con IA
+# 🤖 Procesador de Documentos con IA
 
 Pipeline automatizado para procesar documentos (facturas, recibos) usando Gemini AI, n8n, Supabase y Google Sheets.
 
@@ -6,7 +6,6 @@ Pipeline automatizado para procesar documentos (facturas, recibos) usando Gemini
 - ✅ Extracción automática de datos con Gemini 2.5 Flash
 - ✅ Validación con confidence scoring
 - ✅ Almacenamiento en Supabase
-- ✅ Generación automática de posts para LinkedIn
 
 ## 🛠️ Tech Stack
 - **n8n** - Orquestación de workflows
@@ -16,7 +15,14 @@ Pipeline automatizado para procesar documentos (facturas, recibos) usando Gemini
 - **JavaScript** - Lógica de negocio
 
 ## 📊 Arquitectura del Workflow
-[Aquí agregas captura del workflow completo]
+
+![](./assets/1.workflowTerminado.jpg) 
+![](./assets/4.testPostman.jpg)
+![](./assets/2.bdSupabase.jpg) 
+![](./assets/3.registroProcesamiento.jpg)
+![](./assets/5.puntuacionConfianza.jpg) 
+![](./assets/7.flujoExitoso.jpg)
+
 
 ## 🚀 Resultados
 - ⚡ Procesa documentos en segundos
